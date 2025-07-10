@@ -18,13 +18,13 @@
   <li th:each = "post: ${posts}">
   <div class="post">
     <h2>
-      <a th:href="@{'/posts/' + ${post.id}" th:text="${post.title}"></a>
+      <a th:href="@{'/posts/' + ${post.id}}" th:text="${post.title}"></a>
     </h2>
     <p>
       작성자:
       <span th:text="${post.author.username}"></span>
       |
-      <span th:text="${#temporal.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+      <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
     </p>
   </div>
   </li>

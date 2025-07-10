@@ -1,27 +1,28 @@
 package com.LHY.simple_board.controller;
 
+import com.LHY.simple_board.dto.CommentDto;
 import com.LHY.simple_board.dto.PostDto;
+import com.LHY.simple_board.model.Comment;
 import com.LHY.simple_board.model.Post;
 import com.LHY.simple_board.model.User;
 import com.LHY.simple_board.repository.CommentsRepository;
 import com.LHY.simple_board.repository.PostRepository;
+import jakarta.persistence.PostPersist;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 
 @Controller
-@RequestMapping
+@RequestMapping("/posts")
 @RequiredArgsConstructor
-
 public class PostController {
     private final PostRepository postRepository;
     private final CommentsRepository commentsRepository;
@@ -32,28 +33,27 @@ public class PostController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("posts", postRepository .findAll());
+        model.addAttribute("posts", postRepository.findAll());
 
         return "post-list";
     }
 
     @GetMapping("/add")
     public String addForm(Model model, HttpSession httpSession) {
-        if (currentUser(httpSession) ==null) return "redirect:/login";
+        if (currentUser(httpSession) == null) return "redirect:/login";
 
         model.addAttribute("postDto", new PostDto());
 
         return "post-form";
-
     }
 
-    @PatchMapping
+    @PostMapping("/add")
     public String add(
             @Valid @ModelAttribute PostDto postDto,
             BindingResult bindingResult,
             HttpSession httpSession
     ) {
-        if (bindingResult.hasErrors()) return "post-form";
+        if (bindingResult.hasErrors()) return "post-form.html";
 
         User user = currentUser(httpSession);
         Post post = Post.builder()
@@ -66,5 +66,46 @@ public class PostController {
         postRepository.save(post);
 
         return "redirect:/posts";
+    }
+    @GetMapping("/{id}")
+    public String detail(
+            @PathVariable Integer id,
+            Model model,
+            HttpSession httpSession
+    ) {
+        Post post = postRepository.findById(id).orElseThrow();
+
+        model.addAttribute("post", post);
+        model.addAttribute("commentDto", new CommentDto());
+
+        return "post-detail";
+    }
+
+    @PostMapping("/{post}/comments")
+    public String addComment(
+            @PathVariable Integer postId,
+            @Valid @ModelAttribute CommentDto commentDto,
+            BindingResult bindingResult,
+            HttpSession httpSession,
+            Model model
+            ) {
+        Post post = postRepository.findById(postId).orElseThrow();
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("post", post);
+
+            return "post-detail";
+
+            User user = currentUser(httpSession);
+            Comment comment = Comment.builder()
+                    .post(post)
+                    .author(user)
+                    .text(commentDto.getText())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            commentsRepository.save(comment);
+
+            return "redirect:/posts/" + postId;
+        }
     }
 }
