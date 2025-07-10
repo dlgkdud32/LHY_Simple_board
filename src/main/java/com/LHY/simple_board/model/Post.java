@@ -35,6 +35,6 @@ public class Post {
     private User author;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("createAt ASC")
+    @OrderBy("createdAt ASC")
     private List <Comment> comments;
 }

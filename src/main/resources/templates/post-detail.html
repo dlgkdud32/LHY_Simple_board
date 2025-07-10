@@ -12,15 +12,23 @@
   <p>
     작성자: <b th:text="${post.author.username}"></b>
     |
-    <i th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></i>>
+    <i th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></i>
   </p>
 </div>
-<h2>댓글</h2>
+<h2>💬 댓글</h2>
 <ul class="comment-list">
-
+  <li th:each="comment: ${post.comments}">
+    <div class="comment">
+      <p th:text="${comment.text}"></p>
+      <small>
+        by <span th:text="${comment.author.username}"></span>
+        at <span th:text="${#temporals.format(comment.createdAt, 'MM-dd HH:mm')}"></span>
+      </small>
+    </div>
+  </li>
 </ul>
 <form th:action="@{'/posts/' + ${post.id} + '/comments'}"
-      th:object="${commentDto}" method="post" class="form-container" >
+      th:object="${commentDto}" method="post" class="form-container">
   <label>
     댓글:
     <textarea rows="3" th:field="*{text}"></textarea>
@@ -28,6 +36,5 @@
   <button type="submit">댓글 등록</button>
   <a th:href="@{/posts}">뒤로</a>
 </form>
-
 </body>
 </html>
